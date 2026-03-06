@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZippyDocs - Comprimir PDF</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+   
+  <!-- Barra de navegação -->
+  <nav class="menu">
+    <ul>
+       <li><a href="INDEX.HTML">HOME</a></li>
+       <li><a href="unificar.html">UNIFICAR</a></li>
+       <li><a href="dividir.html">DIVIDIR PDF</a></li>
+       <li><a href="comprimir.html">COMPRIMIR PDF</a></li>
+       <li><a href="converter.html">CONVERTER</a></li>
+       <li class="menu-icon"><img src="íCONE/zippy.ico"></li>
+    </ul>
+  </nav>
+
+  <!-- Cabeçalho -->
+  <header>
+    <h1>Comprima seus arquivos PDFs com o ZippyDocs</h1>
+  </header>
+
+  <main class="grid-container-sub-pages">
+    <!-- Card inicial -->
+    <div class="tool-card">
+      <img src="íCONE/comprimir.ico" id="pages">
+      <h2>COMPRIMIR PDF</h2>
+      <p>Selecione um arquivo PDF para reduzir o tamanho.</p>
+      <input type="file" id="seletor-arquivo" accept="application/pdf" style="display: none;">
+      <button onclick="document.getElementById('seletor-arquivo').click()">SELECIONE SEU ARQUIVO</button>
+    </div>
+    
+    <!-- Área que aparece após selecionar -->
+    <div id="area-arquivos" style="display: none;">
+      <h3>Arquivo selecionado:</h3>
+      <ul id="lista-arquivo"></ul>
+      <button id="botao-enviar">Enviar para compressão</button>
+    </div>
+  </main>
+
+  <script>
+    const inputArquivo = document.getElementById('seletor-arquivo');
+    const lista = document.getElementById('lista-arquivo');
+    const areaArquivos = document.getElementById('area-arquivos');
+    const botaoEnviar = document.getElementById('botao-enviar');
+
+    let arquivoSelecionado = null;
+
+    // Quando a página carrega, limpa tudo
+    window.addEventListener("load", () => {
+      arquivoSelecionado = null;
+      lista.innerHTML = "";
+      areaArquivos.style.display = "none";
+    });
+
+    // Ao selecionar arquivo
+    inputArquivo.addEventListener('change', () => {
+      arquivoSelecionado = inputArquivo.files[0]; // apenas 1 arquivo
+      lista.innerHTML = "";
+
+      if (arquivoSelecionado) {
+        const item = document.createElement('li');
+        const nome = arquivoSelecionado.name;
+        const tamanho = (arquivoSelecionado.size / 1024).toFixed(2) + " KB";
+        item.innerHTML = `
+          <span class="nome">${nome}</span>
+          <span class="tamanho">${tamanho}</span>`;
+        lista.appendChild(item);
+
+        // Exibe área de arquivos
+        areaArquivos.style.display = "block";
+      }
+    });
+
+    // Função para enviar ao backend
+    async function enviarArquivo() {
+      if (!arquivoSelecionado) {
+        alert("Selecione um arquivo primeiro!");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", arquivoSelecionado);
+
+      try {
+        const resposta = await fetch("/comprimir", {
+          method: "POST",
+          body: formData
+        });
+
+        if (resposta.ok) {
+          const resultado = await resposta.json();
+          alert("Arquivo comprimido com sucesso!\n" + JSON.stringify(resultado));
+        } else {
+          alert("Erro ao comprimir arquivo: " + resposta.statusText);
+        }
+      } catch (erro) {
+        console.error("Erro:", erro);
+        alert("Falha na conexão com o servidor.");
+      }
+    }
+
+    botaoEnviar.onclick = enviarArquivo;
+  </script>
+</body>
+</html>
